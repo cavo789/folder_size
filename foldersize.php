@@ -17,6 +17,8 @@
 define('DEBUG', false);
 define('DEMO', false);
 
+define('REPO', 'https://github.com/cavo789/folder_size');
+
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
@@ -344,6 +346,13 @@ if ($task!='') {
     }
 
     die();
+
+}
+    
+// Get the GitHub corner
+$github = '';
+if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
+    $github = str_replace('%REPO%', REPO, file_get_contents($cat));
 }
 
 ?>
@@ -369,6 +378,8 @@ if ($task!='') {
    </head>
 
    <body>
+
+      <?php echo $github; ?>
 
       <div class="container">
 

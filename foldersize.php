@@ -15,6 +15,7 @@
  */
 
 define('DEBUG', false);
+define('DEMO', false);
 
 if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
@@ -36,7 +37,6 @@ class aeSecureFct
     */
     public static function getParam($name, $type = 'string', $default = '', $base64 = false)
     {
-
         $tmp='';
         $return=$default;
 
@@ -55,7 +55,7 @@ class aeSecureFct
             } elseif ($type=='unsafe') {
                 $return=$_POST[$name];
             }
-        } else { // if (isset($_POST[$name]))
+        } else {
 
             if (isset($_GET[$name])) {
                 if (in_array($type, array('int','integer'))) {
@@ -72,56 +72,60 @@ class aeSecureFct
                 } elseif ($type=='unsafe') {
                     $return=$_GET[$name];
                 }
-            } // if (isset($_GET[$name]))
-        } // if (isset($_POST[$name]))
+            }
+        }
 
         if ($type=='boolean') {
             $return=(in_array($return, array('on','1'))?true:false);
         }
 
         return $return;
-    } // function getParam()
+    }
 
     public static function get_dir_size($directory, $recursive = true, &$arrSizeByExtension = array(), &$arrMD5 = array())
     {
+        // Total size; included f.i. the big files
+        $FullSize = 0;
 
-        $FullSize = 0;          // Total size; included f.i. the big files
-        $ReportedSize = 0;    // Size of small files (i.e. excluded big files (see constant BIG_FILES))
+        // Size of small files (i.e. excluded big files (see constant BIG_FILES))
+        $ReportedSize = 0;
 
         foreach (glob(rtrim($directory, DS).DS.'*', GLOB_NOSORT) as $filename) {
             if (is_file($filename)) {
                 // It's a file
-
                 $ext = strtolower(pathinfo($filename, PATHINFO_EXTENSION));
+
                 if (!isset($arrSizeByExtension[$ext])) {
                     $arrSizeByExtension[$ext]=0;
                 }
                 $FullSize += filesize($filename);
 
                 // $arrMD5 contains the list of unique file based on their content.  If the file is unique, add one entry in the file
-                if (!isset($arrMD5[md5_file($filename)])) {
-                    $arrMD5[md5_file($filename)]=filesize($filename);
+                try {
+                    if (!isset($arrMD5[md5_file($filename)])) {
+                        $arrMD5[md5_file($filename)] = filesize($filename);
+                    }
+                } catch (\Exception $e) {
                 }
-
+                
                 if (filesize($filename)<BIG_FILES) {
                     $ReportedSize+=filesize($filename);
                 }
 
                 $arrSizeByExtension[$ext]+=filesize($filename);
-            } else { // if(is_file($filename))
+            } else {
 
                 // It's a folder
-
                 if ($recursive) {
                     list($full, $reported, $arrMD5)=aeSecureFct::get_dir_size($filename, $recursive, $arrSizeByExtension, $arrMD5);
                     $FullSize+=$full;
                     $ReportedSize+=$reported;
-                } // if ($recursive)
-            } // if(is_file($filename))
-        }  // foreach
+                }
+            }
+        }
 
         return array($FullSize, $ReportedSize, $arrMD5);
-    } // function get_dir_size()
+    }
 
     public static function ShowFriendlySize($fsizebyte)
     {
@@ -140,7 +144,7 @@ class aeSecureFct
         }
 
         return $fsize;
-    } // function ShowFriendlySize()
+    }
 
     public static function GetType($extension)
     {
@@ -158,8 +162,8 @@ class aeSecureFct
         } else {
             return '';
         }
-    } // function GetType()
-} // class aeSecureFct
+    }
+}
 
 class aeSecureFolderSize
 {
@@ -169,7 +173,7 @@ class aeSecureFolderSize
     function __construct()
     {
         return true;
-    } // function __construct()
+    }
 
     public static function getInstance()
     {
@@ -185,7 +189,9 @@ class aeSecureFolderSize
         ini_set('max_execution_time', '0');
         ini_set('set_time_limit', '0');
 
-        $sReturn = '<h3>By folders</h3><table id="tblFolders" class="table tablesorter table-hover table-bordered table-striped">'.
+        $sReturn = '';
+
+        $sReturn .= '<h3>By folders</h3><table id="tblFolders" class="table tablesorter table-hover table-bordered table-striped">'.
          '<thead><tr><td>Folder name</td><td>Size (human)</td><td>Size (bytes)</td></tr></thead>'.
          '<tbody>';
 
@@ -212,7 +218,7 @@ class aeSecureFolderSize
             $ReportedSize+=$report;
 
             $sReturn.='<tr><td data-task="folder" '.($isRootFolder?'':'class="folder"').' data-folder="'.$dir.'">'.$dir.($isRootFolder?'*.*':'').'</td><td>'.aeSecureFct::ShowFriendlySize($full).'</td><td>'.$full.'</td></tr>';
-        } // foreach ($dirs as $dir)
+        }
 
         $sReturn.='</tbody></table><hr/>';
 
@@ -220,8 +226,8 @@ class aeSecureFolderSize
         foreach ($arrMD5 as $md5 => $size) {
             $UniqueSize+=$size;
         }
-
-        $sReturn='<p id="totalsize">The total size of '.$sFolder.' (subfolders included) is '.aeSecureFct::ShowFriendlySize($FullSize).'<br/>'.
+        
+        $sReturn.='<p id="totalsize">The total size of '.$sFolder.' (subfolders included) is '.aeSecureFct::ShowFriendlySize($FullSize).'<br/>'.
          '<span id="reportedsize">Files greater or equal to '.aeSecureFct::ShowFriendlySize(BIG_FILES).' excluded : '.aeSecureFct::ShowFriendlySize($ReportedSize).'</span>&nbsp;'.
          '<span id="uniquesize">Duplicate files excluded : '.aeSecureFct::ShowFriendlySize($UniqueSize).'</span></p>'.$sReturn;
 
@@ -244,8 +250,8 @@ class aeSecureFolderSize
         $sReturn.='</tbody></table>';
 
         return $sReturn;
-    } // function DoIt()
-} // class aeSecureFolderSize
+    }
+}
 
 // -------------------------------------------------
 //
@@ -266,7 +272,10 @@ if (DEBUG===true) {
 }
 
 // Get the folder
-$sFolder=aeSecureFct::getParam('folder', 'string', '', false);
+$sFolder = '';
+if (DEMO !== true) {
+    $sFolder=aeSecureFct::getParam('folder', 'string', '', false);
+}
 
 if ($sFolder=='') {
     if (isset($_SERVER['SCRIPT_FILENAME'])) {
@@ -304,7 +313,13 @@ if ($task!='') {
 
             $sURLFolder=rtrim($sURLFolder, DS);
 
-            $sReturn='<div class="page-header"><h3>'.$sURLFolder.'</h3></div>'.
+            $sReturn = '';
+
+            if (DEMO) {
+                $sReturn .= '<p style="color:red;">Le mode DEMO est actif, changer de dossier ne fonctionnera pas.</p>';
+            }
+
+            $sReturn .= '<div class="page-header"><h3>'.$sURLFolder.'</h3></div>'.
               '<div class="navig"><a href="#tblFolders">By folders</a> - <a href="#tblExtensions">By file\'s extensions</a><hr/></div>';
 
             $aeSecureFolderSize=aeSecureFolderSize::getInstance();
@@ -326,10 +341,10 @@ if ($task!='') {
             echo $return;
 
             break;
-    } // switch
+    }
 
     die();
-} // if ($task!='')
+}
 
 ?>
 <!DOCTYPE html>
@@ -337,12 +352,12 @@ if ($task!='') {
 
    <head>
       <meta charset="utf-8"/>
-      <meta name="author" content="aeSecure (c) Christophe Avonture" />
+      <meta name="author" content="Christophe Avonture" />
       <meta name="robots" content="noindex, nofollow" />
       <meta name="viewport" content="width=device-width, initial-scale=1.0" />
       <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
       <meta http-equiv="X-UA-Compatible" content="IE=9; IE=8;" />
-      <title>aeSecure - FolderSize</title>
+      <title>FolderSize</title>
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
       <link href="https://cdnjs.cloudflare.com/ajax/libs/jquery.tablesorter/2.25.3/css/theme.ice.min.css" rel="stylesheet" media="screen" />
       <link href= "data:image/x-icon;base64,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" rel="shortcut icon" type="image/vnd.microsoft.icon"/>
@@ -357,7 +372,7 @@ if ($task!='') {
 
       <div class="container">
 
-         <div class="page-header"><h1>aeSecure - Folder size</h1></div>
+         <div class="page-header"><h1>Folder size</h1></div>
          <div id="intro">
             <p>Cliquez sur le bouton 'Démarrer' pour scanner l'intégralité du site web afin de générer deux tableaux qui vont reprendre la taille du site web, dossiers par dossiers et par extensions.</p>
             <br/>
@@ -365,8 +380,9 @@ if ($task!='') {
             <button type="button" id="btnKillMe" class="btn btn-danger pull-right" style="margin-left:10px;">Supprimer ce script</button>
             <br/>
          </div>
-         <input type="hidden" name="folder" id="folder" value="<?php echo $sFolder; ?>"/>
+         <input type="hidden" name="folder" id="folder" value="<?php echo $sFolder; ?>"/>         
          <div id="Result">&nbsp;</div>
+         
       </div>
       <script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
       <script type="text/javascript" src="//maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>

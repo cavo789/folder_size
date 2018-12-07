@@ -1,3 +1,5 @@
+![Banner](images/banner.jpg)
+
 # Folder size
 
 > Do you know the size of your website? How many megabytes/gigabytes? Do you know how many disk space take all your .zip files? your images? Which folder is the biggest one?

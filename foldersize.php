@@ -1,17 +1,21 @@
 <?php
 
 /**
- * Author : AVONTURE Christophe - https://www.avonture.be
+ * Author: AVONTURE Christophe - https://www.avonture.be
  *
- * Calculate the size of a website.  This script can be stored at the root level of the website.
+ * Calculate the size of a website.  This script can be stored 
+ * at the root level of the website.
  *
- * Changelog :
+ * Changelog:
  *
  * 2016-12-04
  *    + The two tables are now sortable
- *    + The table with extensions provides now checkboxes and only therefore to select severall extensions and the script will display the total size of the selection
- *    + The table with extensions has an extra column "Type" and will mention f.i. images, archives, webfonts, ... depending on the file's extension
- *
+ *    + The table with extensions provides now checkboxes and 
+ *          only therefore to select several extensions and the 
+ *          script will display the total size of the selection
+ *    + The table with extensions has an extra column "Type" and 
+ *          will mention f.i. images, archives, webfonts, ... depending 
+ *          on the file's extension
  */
 
 define('DEBUG', false);
@@ -23,8 +27,8 @@ if (!defined('DS')) {
     define('DS', DIRECTORY_SEPARATOR);
 }
 
-define('MB', 1024*1024);            // One megabyte
-define('BIG_FILES', 2*MB);          // A big file has a size of ... MB at least
+define('MB', 1024*1024);     // One megabyte
+define('BIG_FILES', 2*MB);   // A big file has a size of ... MB at least
 
 class aeSecureFct
 {

@@ -8,6 +8,9 @@
  *
  * Changelog:
  *
+ * 2019-02-10
+ *    + Don't kill the script if demo
+ * 
  * 2016-12-04
  *    + The two tables are now sortable
  *    + The table with extensions provides now checkboxes and 
@@ -339,11 +342,13 @@ if ($task!='') {
             break;
 
         case 'killMe':
+
+            if (!DEMO) {
+                // Kill this script
+                unlink(__FILE__);
+            }
+            
             $return.='<p class="text-success">Le script '.__FILE__.' a &eacute;t&eacute; supprim&eacute; du serveur avec succ&egrave;s</p>';
-
-            // Kill this script
-            unlink(__FILE__);
-
             echo $return;
 
             break;
@@ -392,7 +397,14 @@ if (is_file($cat = __DIR__ . DIRECTORY_SEPARATOR . 'octocat.tmpl')) {
             <p>Cliquez sur le bouton 'Démarrer' pour scanner l'intégralité du site web afin de générer deux tableaux qui vont reprendre la taille du site web, dossiers par dossiers et par extensions.</p>
             <br/>
             <button type="button" id="btnDoIt" class="btn btn-primary">Détermine l'occupation disque du site</button>
-            <button type="button" id="btnKillMe" class="btn btn-danger pull-right" style="margin-left:10px;">Supprimer ce script</button>
+
+            <?php 
+                if (!(DEMO)) {
+                    echo "<button type='button' id='btnKillMe' class='btn btn-danger pull-right' " .
+                        "style='margin-left:10px;'>Supprimer ce script</button>";
+            
+                }
+            ?>
             <br/>
          </div>
          <input type="hidden" name="folder" id="folder" value="<?php echo $sFolder; ?>"/>         
